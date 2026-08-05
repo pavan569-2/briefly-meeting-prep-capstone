@@ -40,14 +40,30 @@ Supabase        Anthropic Claude
 - Node.js ≥ 20
 - npm ≥ 10
 
-### Frontend
+### Frontend Workflow
 
-```bash
-cd frontend
-cp .env.example .env          # fill in real values
-npm install
-npm run dev                   # http://localhost:5173
-```
+The authenticated dashboard provides:
+1. **Meeting Form**: Define your objective, agenda, and optional context.
+2. **AI Streaming**: Progressively displays AI-generated summaries via SSE.
+3. **Follow-up Linking**: Visually link sequential meetings, preserving contextual parent data for the backend AI prompt.
+4. **Brief History**: View previously generated meeting briefs and follow-ups.
+5. **Copy Actions**: Export the full meeting brief or individual sections directly to your clipboard in a deterministic plain text format.
+
+## Local Testing
+
+1. Ensure the Supabase backend configuration (`.env`) is valid.
+2. Start the backend:
+   ```bash
+   cd backend
+   npm run dev
+   ```
+3. Start the frontend:
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+4. Access the UI at `http://localhost:5173`.
+5. *Note: Full integration testing requires real Anthropic and Supabase credentials. Do not treat local execution as fully tested for production without smoke testing these dependencies.*
 
 ### Backend
 

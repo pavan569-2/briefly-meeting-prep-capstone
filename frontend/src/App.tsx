@@ -4,7 +4,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute'
 import { useAuth } from './auth/useAuth'
 import { LoadingScreen } from './components/LoadingScreen'
 import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
+import { DashboardPage } from './pages/DashboardPage'
 
 /**
  * Catch-all handler for unknown routes.
