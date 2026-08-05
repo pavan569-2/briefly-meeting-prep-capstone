@@ -79,14 +79,37 @@ npm run dev                   # http://localhost:3000
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check — returns `{"status":"ok","timestamp":"…"}` |
-
-### Planned (future tasks)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/briefs` | Create a new meeting brief and trigger AI generation |
+| GET | `/api/auth/me` | Validates JWT and returns `{ id, email }` |
 | GET | `/api/briefs` | List all briefs for the authenticated user |
-| GET | `/api/briefs/:id` | Fetch a single brief with its generated content |
+| GET | `/api/briefs/:id` | Fetch a single brief owned by the user |
+| POST | `/api/briefs` | Create a new meeting brief |
+| PUT | `/api/briefs/:id` | Update a brief owned by the user |
+| DELETE | `/api/briefs/:id` | Delete a brief owned by the user |
+
+## Database & Ownership
+
+### Meeting Briefs Schema
+The `meeting_briefs` table holds all user-generated meeting context and the AI-generated JSON brief.
+- Contains references to `auth.users(id)` and a self-reference `parent_brief_id`.
+- The `generated_brief` JSONB column stores the 8 required AI output sections.
+
+### Row Level Security (RLS)
+The database enforces strict RLS policies on `meeting_briefs`:
+- No public or anonymous access is allowed.
+- `SELECT`, `INSERT`, `UPDATE`, and `DELETE` are tightly bound to `auth.uid() = user_id`.
+
+### Backend Defense in Depth
+While the backend uses the Supabase service-role client (which bypasses RLS), **mandatory ownership filtering** is enforced at the application level:
+- Every query explicitly appends `.eq('user_id', req.user.id)`.
+- Client payloads attempting to forge ownership fields are strictly rejected.
+- `parent_brief_id` is verified to belong to the exact same user before insertion/update.
+
+### Applying Migrations
+Apply the database schema locally using the Supabase CLI:
+```bash
+npx supabase db push
+```
+*(Requires a linked Supabase project)*
 
 ## Security Boundaries
 

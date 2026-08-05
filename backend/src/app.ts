@@ -43,6 +43,9 @@ app.get('/api/auth/me', requireAuth, (req: Request, res: Response): void => {
   res.json({ id: req.user.id, email: req.user.email })
 })
 
+import { briefRouter } from './briefs/briefRouter'
+app.use('/api/briefs', briefRouter)
+
 // ── Error handlers ──────────────────────────────────────────────────────────
 
 // 404 — must come after all routes
