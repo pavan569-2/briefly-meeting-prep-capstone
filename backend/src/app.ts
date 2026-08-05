@@ -44,6 +44,8 @@ app.get('/api/auth/me', requireAuth, (req: Request, res: Response): void => {
 })
 
 import { briefRouter } from './briefs/briefRouter'
+import { aiRouter } from './ai/aiRouter'
+app.use('/api/briefs', aiRouter)
 app.use('/api/briefs', briefRouter)
 
 // ── Error handlers ──────────────────────────────────────────────────────────

@@ -82,9 +82,21 @@ npm run dev                   # http://localhost:3000
 | GET | `/api/auth/me` | Validates JWT and returns `{ id, email }` |
 | GET | `/api/briefs` | List all briefs for the authenticated user |
 | GET | `/api/briefs/:id` | Fetch a single brief owned by the user |
-| POST | `/api/briefs` | Create a new meeting brief |
+| POST | `/api/briefs` | Create a new meeting brief manually |
 | PUT | `/api/briefs/:id` | Update a brief owned by the user |
 | DELETE | `/api/briefs/:id` | Delete a brief owned by the user |
+| POST | `/api/briefs/generate` | Generate a new brief via AI (Server-Sent Events) |
+
+### AI Generation (POST `/api/briefs/generate`)
+This endpoint accepts a strict JSON body with meeting details (title, objective, agenda, optional context, attendees, previousNotes, and parentBriefId).
+- **Authentication**: Required (`Authorization: Bearer <token>`).
+- **Rate Limit**: Dedicated limit of 20 requests per 15 minutes per IP.
+- **Streaming (SSE)**: Streams Anthropic Claude text deltas as Server-Sent Events using exactly this format:
+  - `data: {"type":"chunk","text":"..."}`
+  - `data: {"type":"complete","briefId":"<uuid>"}` (Fires only after successful DB insertion)
+  - `data: {"type":"error","message":"<Sanitized error>"}`
+- **Persistence**: Automatically saved to the database *only* if the final AI JSON output strictly passes Zod schema validation. Incomplete or malformed JSON is never saved.
+- **Security**: The backend explicitly controls the system prompt, model, and token limits. Client payloads are fully sandboxed.
 
 ## Database & Ownership
 
