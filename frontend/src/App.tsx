@@ -1,17 +1,41 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './auth/AuthProvider'
+import { ProtectedRoute } from './auth/ProtectedRoute'
+import { useAuth } from './auth/useAuth'
+import { LoadingScreen } from './components/LoadingScreen'
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
+
+/**
+ * Catch-all handler for unknown routes.
+ * Redirects to /dashboard when authenticated, /login otherwise.
+ * Shows a loading screen while session restoration is pending.
+ */
+function RootRedirect() {
+  const { user, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  return <Navigate to={user ? '/dashboard' : '/login'} replace />
+}
+
 function App() {
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold tracking-tight text-white mb-3">
-          Briefly
-        </h1>
-        <p className="text-xl text-gray-400 mb-8">AI Meeting Prep Assistant</p>
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-5 py-2 text-sm font-medium text-emerald-400">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          Application foundation ready
-        </span>
-      </div>
-    </main>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Unknown routes redirect based on authentication state */}
+          <Route path="*" element={<RootRedirect />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
 

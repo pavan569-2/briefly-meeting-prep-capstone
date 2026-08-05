@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import { env } from './config/env'
+import { requireAuth } from './middleware/auth'
 
 const app = express()
 
@@ -28,8 +29,18 @@ app.use(
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 
+// Public
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Protected — requires a valid Supabase JWT in the Authorization header
+app.get('/api/auth/me', requireAuth, (req: Request, res: Response): void => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+  res.json({ id: req.user.id, email: req.user.email })
 })
 
 // ── Error handlers ──────────────────────────────────────────────────────────
