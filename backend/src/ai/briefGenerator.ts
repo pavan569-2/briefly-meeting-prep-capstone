@@ -13,7 +13,6 @@ export async function generateBriefStream(
     {
       model: env.ANTHROPIC_MODEL,
       max_tokens: 4000,
-      temperature: 0.2,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
       stream: true,
