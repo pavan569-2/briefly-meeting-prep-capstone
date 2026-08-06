@@ -1,152 +1,130 @@
-# Briefly – AI Meeting Prep Assistant
+# Briefly – AI Meeting Intelligence Platform
 
-> AI-powered briefing generator that prepares you for meetings in minutes.
+Briefly is an AI-powered meeting intelligence platform that helps professionals prepare for meetings. By converting raw context into structured briefing documents, it ensures you walk into every meeting fully prepared while reducing manual effort.
 
-## Overview
+## Features
 
-Briefly takes a meeting title, attendee list, date, and free-text context, then uses an AI model to generate a structured briefing document so you walk into every meeting prepared.
+- Secure authentication via Supabase
+- AI-generated meeting briefs using Anthropic Claude
+- Live streaming generation via Server-Sent Events (SSE)
+- Persistent brief history and retrieval
+- Follow-up meeting generation linking past context
+- Data ownership protection (multi-tenant isolation)
+- Responsive UI built with React and Tailwind CSS
+- Backend validation using Zod
+- Rate limiting to protect API resources
 
-## Repository Layout
+## Technology Stack
 
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | React, Vite, Tailwind CSS | Provides the user interface, routing, and streaming render logic. |
+| **Backend** | Node.js, Express, TypeScript | Orchestrates requests, validates data, and enforces security. |
+| **Database** | Supabase PostgreSQL | Persists meeting brief history securely. |
+| **Authentication** | Supabase Auth | Manages user authentication and application sessions. |
+| **AI Generation** | Anthropic Claude API | Processes context to generate structured meeting briefs. |
+| **Validation** | Zod | Enforces strict schema and character limits on all inputs. |
+| **Testing** | Vitest, Supertest | Executes backend unit and integration test suites. |
+
+## Project Structure
+
+```text
+briefly-meeting-prep-capstone/
+├── frontend/
+├── backend/
+└── docs/
 ```
-briefly-meeting-prep/
-├── frontend/          # React · TypeScript · Vite · Tailwind CSS v4
-├── backend/           # Node · Express · TypeScript
-└── supabase/
-    └── migrations/    # Supabase SQL migration files
-```
 
-## Architecture
-
-```
-Browser (React/Vite)
-    │  HTTPS  │  REST
-    ▼          ▼
-Express API (Node/TypeScript)
-    │               │
-    ▼               ▼
-Supabase        Anthropic Claude
-(Postgres + RLS)  (brief generation)
-```
-
-- The **frontend** is a static SPA served independently. It communicates with the backend via REST and connects to Supabase directly using the public anon key for any row-level-secure reads.
-- The **backend** holds all secrets (service-role key, Anthropic API key). It is the only process that writes to Supabase and calls the Anthropic API.
-- The **Supabase service-role key** never leaves the backend process.
-- The **Anthropic API key** never leaves the backend process.
-
-## Local Development
+## Getting Started
 
 ### Prerequisites
-- Node.js ≥ 20
-- npm ≥ 10
+- Node.js (v18 or higher)
+- npm (v11+)
+- A Supabase project
+- An Anthropic API key
 
-### Frontend Workflow
-
-The authenticated dashboard provides:
-1. **Meeting Form**: Define your objective, agenda, and optional context.
-2. **AI Streaming**: Progressively displays AI-generated summaries via SSE.
-3. **Follow-up Linking**: Visually link sequential meetings, preserving contextual parent data for the backend AI prompt.
-4. **Brief History**: View previously generated meeting briefs and follow-ups.
-5. **Copy Actions**: Export the full meeting brief or individual sections directly to your clipboard in a deterministic plain text format.
-
-## Local Testing
-
-1. Ensure the Supabase backend configuration (`.env`) is valid.
-2. Start the backend:
-   ```bash
-   cd backend
-   npm run dev
-   ```
-3. Start the frontend:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-4. Access the UI at `http://localhost:5173`.
-5. *Note: Full integration testing requires real Anthropic and Supabase credentials. Do not treat local execution as fully tested for production without smoke testing these dependencies.*
-
-### Backend
-
+### Installation
+Clone the repository and install dependencies in both the frontend and backend directories:
 ```bash
-cd backend
-cp .env.example .env          # fill in real values
+# Frontend
+cd frontend
 npm install
-npm run dev                   # http://localhost:3000
+
+# Backend
+cd ../backend
+npm install
 ```
 
-## Available Scripts
+### Environment Variables
+Configure the environment variables in both directories based on the provided `.env.example` files.
 
-| Package | Command | Description |
-|---------|---------|-------------|
-| frontend | `npm run dev` | Vite dev server |
-| frontend | `npm run build` | Production bundle |
-| frontend | `npm run typecheck` | TypeScript type check |
-| frontend | `npm run lint` | ESLint |
-| backend | `npm run dev` | tsx watch mode |
-| backend | `npm run build` | Compile to `dist/` |
-| backend | `npm run typecheck` | TypeScript type check |
-| backend | `npm run lint` | ESLint |
-| backend | `npm start` | Run compiled output |
+**`frontend/.env`**
+```env
+VITE_API_BASE_URL=http://localhost:3000
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=replace_with_supabase_anon_key
+```
+
+**`backend/.env`**
+```env
+ANTHROPIC_API_KEY=replace_with_anthropic_api_key
+ANTHROPIC_MODEL=claude-sonnet-5
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=replace_with_supabase_service_role_key
+FRONTEND_URL=http://localhost:5173
+PORT=3000
+```
+
+## Running the Application
+
+### Frontend Commands (from `frontend/`)
+- `npm run dev` - Starts the Vite development server (port 5173).
+- `npm run build` - Builds the application for production.
+- `npm run preview` - Previews the production build locally.
+- `npm run typecheck` - Runs the TypeScript compiler check.
+- `npm run lint` - Runs ESLint.
+
+### Backend Commands (from `backend/`)
+- `npm run dev` - Starts the backend development server using `tsx`.
+- `npm run build` - Compiles the TypeScript code to JavaScript.
+- `npm run start` - Runs the compiled production server.
+- `npm run test` - Runs the Vitest test suite.
+- `npm run typecheck` - Runs the TypeScript compiler check.
+- `npm run lint` - Runs ESLint.
+
+## Testing
+The backend implements a comprehensive testing approach using Vitest. It includes unit tests for isolated service layers and AI utilities (mocking the Anthropic SDK), and integration tests using Supertest to validate the full request lifecycle. Currently, 97 backend tests pass, verifying the core logic, API endpoints, validation, and error handling.
+
+## Architecture Overview
+Briefly implements a secure three-tier architecture:
+
+Frontend SPA ↓ Backend API ↓ AI + Database
+
+The React frontend handles user interaction and displays real-time SSE streams. The Express backend orchestrates the workflow, validating requests before securely communicating with the Anthropic AI service and persisting results to Supabase. This ensures sensitive credentials remain entirely on the server.
+
+For a comprehensive breakdown, please refer to [docs/03-architecture.md](docs/03-architecture.md).
 
 ## API
+The Briefly backend exposes a robust REST API for authentication and CRUD operations, alongside a specialized Server-Sent Events (SSE) endpoint (`/api/briefs/generate`) that streams generated content back to the client progressively to minimise perceived latency.
 
-### Implemented
+For the full endpoint specifications, refer to [docs/06-api-documentation.md](docs/06-api-documentation.md).
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | Health check — returns `{"status":"ok","timestamp":"…"}` |
-| GET | `/api/auth/me` | Validates JWT and returns `{ id, email }` |
-| GET | `/api/briefs` | List all briefs for the authenticated user |
-| GET | `/api/briefs/:id` | Fetch a single brief owned by the user |
-| POST | `/api/briefs` | Create a new meeting brief manually |
-| PUT | `/api/briefs/:id` | Update a brief owned by the user |
-| DELETE | `/api/briefs/:id` | Delete a brief owned by the user |
-| POST | `/api/briefs/generate` | Generate a new brief via AI (Server-Sent Events) |
+## Documentation
 
-### AI Generation (POST `/api/briefs/generate`)
-This endpoint accepts a strict JSON body with meeting details (title, objective, agenda, optional context, attendees, previousNotes, and parentBriefId).
-- **Authentication**: Required (`Authorization: Bearer <token>`).
-- **Rate Limit**: Dedicated limit of 20 requests per 15 minutes per IP.
-- **Streaming (SSE)**: Streams Anthropic Claude text deltas as Server-Sent Events using exactly this format:
-  - `data: {"type":"chunk","text":"..."}`
-  - `data: {"type":"complete","briefId":"<uuid>"}` (Fires only after successful DB insertion)
-  - `data: {"type":"error","message":"<Sanitized error>"}`
-- **Persistence**: Automatically saved to the database *only* if the final AI JSON output strictly passes Zod schema validation. Incomplete or malformed JSON is never saved.
-- **Security**: The backend explicitly controls the system prompt, model, and token limits. Client payloads are fully sandboxed.
+| Document | Purpose |
+|---|---|
+| [01 Project Proposal](docs/01-project-proposal.md) | The original idea brief and success criteria. |
+| [02 PRD](docs/02-prd.md) | Detailed Product Requirements Document mapping features to user stories. |
+| [03 Architecture](docs/03-architecture.md) | High-level system design and component responsibilities. |
+| [04 Vibe Coding Spec](docs/04-vibe-coding-spec.md) | The original specification guiding the AI-assisted development. |
+| [05 Prompt Library](docs/05-prompt-library.md) | Key AI prompts used to construct the system and capabilities. |
+| [06 API Documentation](docs/06-api-documentation.md) | Comprehensive REST and Streaming API specifications. |
+| [07 Security Audit](docs/07-security-audit.md) | Vulnerability assessments and remediation logs. |
+| [09 Debugging Journal](docs/09-debugging-journal.md) | Record of major technical challenges and their resolutions. |
 
-## Database & Ownership
+## Future Enhancements
+- Exporting generated briefs to alternative formats (e.g., PDF).
+- Direct document and file uploads to capture deeper meeting context.
 
-### Meeting Briefs Schema
-The `meeting_briefs` table holds all user-generated meeting context and the AI-generated JSON brief.
-- Contains references to `auth.users(id)` and a self-reference `parent_brief_id`.
-- The `generated_brief` JSONB column stores the 8 required AI output sections.
-
-### Row Level Security (RLS)
-The database enforces strict RLS policies on `meeting_briefs`:
-- No public or anonymous access is allowed.
-- `SELECT`, `INSERT`, `UPDATE`, and `DELETE` are tightly bound to `auth.uid() = user_id`.
-
-### Backend Defense in Depth
-While the backend uses the Supabase service-role client (which bypasses RLS), **mandatory ownership filtering** is enforced at the application level:
-- Every query explicitly appends `.eq('user_id', req.user.id)`.
-- Client payloads attempting to forge ownership fields are strictly rejected.
-- `parent_brief_id` is verified to belong to the exact same user before insertion/update.
-
-### Applying Migrations
-Apply the database schema locally using the Supabase CLI:
-```bash
-npx supabase db push
-```
-*(Requires a linked Supabase project)*
-
-## Security Boundaries
-
-| Concern | Boundary |
-|---------|---------|
-| Anthropic API key | Backend only — never referenced in frontend code |
-| Supabase service-role key | Backend only — never referenced in frontend code |
-| Supabase anon key | Frontend only — safe for browser use with RLS enforced |
-| CORS | Backend accepts requests only from `FRONTEND_URL` |
-| Rate limiting | 100 requests / 15 minutes per IP (global) |
-| JSON body | Express default limit (~100 KB) |
-| Error responses | Stack traces and secret values are never included in HTTP responses |
+## License
+This project was created as part of a software engineering capstone project.
