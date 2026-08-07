@@ -44,7 +44,7 @@ All three errors were in the `createBrief` parent-validation test, which called
 
 **Failure pattern:**
 
-Mock type mismatch — TypeScript resolves the declared return type of the real library
+Universal recovery workflow (STOP → DIAGNOSE → PLAN → EXECUTE). The specific issue was a mock type mismatch — TypeScript resolves the declared return type of the real library
 function for a mocked module's call, ignoring the runtime mock object's actual shape.
 
 **Diagnosis:**
@@ -109,7 +109,7 @@ async function* abortedStream() {
 
 **Failure pattern:**
 
-ESLint rule enforcement — `require-yield` is included in the `eslint:recommended` rule set.
+Universal recovery workflow (STOP → DIAGNOSE → PLAN → EXECUTE). The specific issue was ESLint rule enforcement — `require-yield` is included in the `eslint:recommended` rule set.
 It treats any `function*` with no `yield` statement as an error on the grounds that a
 generator with no yield is behaviorally equivalent to a regular function.
 
@@ -176,7 +176,7 @@ expect(() => validateGeneratedBrief('\`\`\`\nnot-json\n\`\`\`')).toThrow(…)
 
 **Failure pattern:**
 
-ESLint rule enforcement — `no-useless-escape` is part of `eslint:recommended`. Backtick
+Universal recovery workflow (STOP → DIAGNOSE → PLAN → EXECUTE). The specific issue was ESLint rule enforcement — `no-useless-escape` is part of `eslint:recommended`. Backtick
 characters have no special meaning in single-quoted or double-quoted string literals, so
 backslash-escaping them is unnecessary and flagged as an error.
 
@@ -218,3 +218,74 @@ constructing strings containing backticks in test code, use one of the following
 
 Never apply `\`` inside a single-quoted or double-quoted string literal. Run `npm run lint`
 before `npm test` during development so lint errors surface before test results do.
+
+---
+
+## Phase 2 – Production Deployment (2026-08-07)
+
+---
+
+### Entry 2.1 — Vercel SPA Hard-Refresh Failure
+
+**What happened:**
+
+The deployed React/Vite application worked when navigating normally through React Router. However, directly opening or hard-refreshing `/dashboard` returned `404 NOT_FOUND` from Vercel.
+
+**Failure pattern:**
+
+Dependency issues (Environment-related). The application behaviour differed when handled by the production hosting environment configuration boundary, preventing the expected SPA fallback behaviour.
+
+**Diagnosis:**
+
+The browser requested `/dashboard` directly from Vercel. Vercel attempted to resolve it as a server/static path instead of serving the SPA entry point. React Router therefore never had an opportunity to handle the route.
+
+**Exact recovery:**
+
+A Vercel SPA rewrite configuration was added at `frontend/vercel.json` with:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+The change was committed and pushed. Vercel redeployed the frontend.
+
+**Outcome:**
+
+Direct `/dashboard` loading and Ctrl+F5 subsequently worked correctly.
+
+**Prevention lesson:**
+
+Include direct-route and hard-refresh testing in the deployment smoke-test checklist for SPAs, rather than validating only client-side navigation.
+
+---
+
+### Entry 2.2 — Narrow-Viewport Scrolling Failure
+
+**What happened:**
+
+At reduced browser widths, vertical scrolling did not work correctly for the meeting workflows. After an initial fix, Saved Brief worked, but New Meeting and Start Follow-up still did not scroll.
+
+**Failure pattern:**
+
+Universal recovery workflow (STOP → DIAGNOSE → PLAN → EXECUTE). This incident exhibited a warning sign resembling a circular repair loop: multiple partial fixes were attempted at lower levels before the full bounded-height chain was finally examined and addressed.
+
+**Diagnosis:**
+
+`DashboardPage.tsx` used an outer `h-screen` flex-column layout. An intermediate workspace wrapper (`<div className="flex-1 flex overflow-hidden">`) was itself a flex child. Because it lacked `min-h-0`, its default `min-height:auto` allowed intrinsic `MeetingForm` height to expand the workspace beyond the available viewport. Lower-level `min-h-0` fixes were insufficient because the bounded-height chain was already broken at this higher-level flex item.
+
+**Exact recovery:**
+
+The intermediate wrapper was changed to `<div className="flex-1 flex min-h-0 overflow-hidden">`. The previously added lower-level flex/min-h-0 constraints were retained. Frontend validation was run (`npm run typecheck`, `npm run lint`, `npm run build`), and all passed. The fix was deployed.
+
+**Outcome:**
+
+Manual production validation confirmed narrow-width scrolling works for Saved Brief, New Meeting, and Start Follow-up.
+
+**Prevention lesson:**
+
+For nested Flexbox layouts containing internal scroll regions, trace the entire bounded-height chain from viewport to scroll owner before applying isolated overflow/min-height fixes. Responsive smoke testing should include reduced-width views rather than only full-size desktop testing.
