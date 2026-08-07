@@ -1,4 +1,4 @@
-# Briefly – AI Meeting Intelligence Platform
+# Briefly - AI Meeting Intelligence Platform
 
 Briefly is an AI-powered meeting intelligence platform that helps professionals prepare for meetings. By converting raw context into structured briefing documents, it ensures you walk into every meeting fully prepared while reducing manual effort.
 
@@ -30,9 +30,9 @@ Briefly is an AI-powered meeting intelligence platform that helps professionals 
 
 ```text
 briefly-meeting-prep-capstone/
-├── frontend/
-├── backend/
-└── docs/
+|-- frontend/
+|-- backend/
+`-- docs/
 ```
 
 ## Getting Started
@@ -98,7 +98,7 @@ The backend implements a comprehensive testing approach using Vitest. It include
 ## Architecture Overview
 Briefly implements a secure three-tier architecture:
 
-Frontend SPA ↓ Backend API ↓ AI + Database
+Frontend SPA -> Backend API -> AI + Database
 
 The React frontend handles user interaction and displays real-time SSE streams. The Express backend orchestrates the workflow, validating requests before securely communicating with the Anthropic AI service and persisting results to Supabase. This ensures sensitive credentials remain entirely on the server.
 
@@ -120,7 +120,63 @@ For the full endpoint specifications, refer to [docs/06-api-documentation.md](do
 | [05 Prompt Library](docs/05-prompt-library.md) | Key AI prompts used to construct the system and capabilities. |
 | [06 API Documentation](docs/06-api-documentation.md) | Comprehensive REST and Streaming API specifications. |
 | [07 Security Audit](docs/07-security-audit.md) | Vulnerability assessments and remediation logs. |
+| [08 Stakeholder Review](docs/08-stakeholder-review.md) | Evaluation of stakeholder UX changes against the existing implementation. |
 | [09 Debugging Journal](docs/09-debugging-journal.md) | Record of major technical challenges and their resolutions. |
+| [10 Retrospective](docs/10-retrospective.md) | Personal reflections and lessons learned during the capstone. |
+| [11 Self-Assessment](docs/11-self-assessment.md) | Evidence-based self-assessment against the Module 15 rubric. |
+
+## Deployment
+
+The deployment architecture consists of a React SPA on Vercel, a Node.js API on Railway, and database/authentication via Supabase.
+
+Deployment sequence:
+1. Configure Supabase
+2. Deploy backend to Railway
+3. Verify backend health endpoint
+4. Deploy frontend to Vercel
+5. Update Railway FRONTEND_URL to the deployed Vercel origin
+6. Perform final production smoke testing
+
+### Supabase
+Supabase provides authentication and the PostgreSQL database. Required credentials are listed in the Environment Variables section. Do not expose real secret values.
+
+### Railway Backend
+- **Repository:** pavan569-2/briefly-meeting-prep-capstone
+- **Root Directory:** backend
+- **Build Command:** `npm ci && npm run build`
+- **Start Command:** `npm start`
+
+Required environment variables:
+`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FRONTEND_URL`
+
+The hosting platform provides the runtime port, and the application reads it through the environment configuration.
+
+After deployment, verify the health endpoint via GET `/api/health`. The current production health endpoint is:
+https://briefly-meeting-prep-capstone-production.up.railway.app/api/health
+
+### Vercel Frontend
+- **Repository:** pavan569-2/briefly-meeting-prep-capstone
+- **Root Directory:** frontend
+- **Framework:** Vite
+
+Required environment variables:
+`VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+
+For production, `VITE_API_BASE_URL` should point to the Railway backend base URL. Do NOT expose or suggest putting `SUPABASE_SERVICE_ROLE_KEY` in the frontend.
+
+The file `frontend/vercel.json` contains the SPA rewrite required so React Router routes such as `/dashboard` work correctly on direct navigation and hard refresh. After obtaining the final Vercel URL, the Railway `FRONTEND_URL` should be set to that exact frontend origin so the backend CORS configuration accepts the deployed frontend.
+
+### Production Validation
+Perform a concise smoke-test checklist after deployment:
+- frontend loads
+- authentication works
+- dashboard/history loads
+- brief generation works
+- SSE streaming works
+- saved brief appears in history
+- follow-up generation works
+- direct /dashboard refresh works
+- no critical browser-console errors
 
 ## Future Enhancements
 - Exporting generated briefs to alternative formats (e.g., PDF).
