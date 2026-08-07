@@ -312,7 +312,7 @@ export function DashboardPage() {
     if (view === 'form') {
       return (
         <div className="flex flex-col lg:flex-row h-full gap-4">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 min-h-0">
             <MeetingForm
               values={formValues}
               onChange={setFormValues}
@@ -324,7 +324,7 @@ export function DashboardPage() {
           </div>
           {/* Show streaming preview alongside if generating or if there is a generation error with partial text */}
           {(isGenerating || generationError || generationPreview) && (
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 min-h-0">
               <StreamingBriefPreview text={generationPreview} error={generationError} />
             </div>
           )}
