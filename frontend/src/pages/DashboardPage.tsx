@@ -361,10 +361,10 @@ export function DashboardPage() {
 
         {/* Main Workspace */}
         <main
-          className={`flex-1 p-4 overflow-hidden ${view !== 'history' ? 'block' : 'hidden md:block'}`}
+          className={`flex-1 p-4 overflow-hidden flex flex-col ${view !== 'history' ? 'flex' : 'hidden md:flex'}`}
         >
           {/* Mobile 'Back to List' button */}
-          <div className="md:hidden mb-4">
+          <div className="md:hidden mb-4 shrink-0">
             {view !== 'history' && (
               <button
                 onClick={() => setView('history')}
@@ -375,7 +375,7 @@ export function DashboardPage() {
             )}
           </div>
 
-          <div className="h-full">
+          <div className="flex-1 min-h-0">
             {view === 'history' && (
               <div className="hidden md:block h-full">
                 <EmptyState
