@@ -344,7 +344,7 @@ export function DashboardPage() {
         disabled={isGenerating}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Desktop Sidebar / Mobile toggled sidebar */}
         <aside
           className={`w-full md:w-80 shrink-0 ${view === 'history' ? 'block' : 'hidden md:block'}`}
